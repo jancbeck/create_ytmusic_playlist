@@ -60,6 +60,7 @@ def main():
     # Set up command line arguments
     parser = argparse.ArgumentParser(description='Create a YouTube Music playlist from a JSON file.')
     parser.add_argument('json_file', type=str, help='Path to the JSON file containing song data')
+    parser.add_argument('-a', '--auth_file', type=str, default='headers_auth.json', help='Path to the headers_auth.json file')
     parser.add_argument('-o', '--output_file', type=str, default=None, help='Optional path to the text file to store the playlist ID')
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose mode (print warnings)')
     parser.add_argument('-l', '--log_file', type=str, default=None, help='Optional path to the log file to store warnings')
@@ -67,6 +68,7 @@ def main():
 
     # Read command line arguments
     json_file = args.json_file
+    auth_file = args.auth_file
     output_file = args.output_file
     verbose = args.verbose
     log_file = args.log_file
@@ -84,8 +86,8 @@ def main():
     with open(json_file) as f:
         data = json.load(f)
 
-       # Initialize the YTMusic API with the authentication headers
-    ytmusic = YTMusic('headers_auth.json')
+    # Initialize the YTMusic API with the authentication headers
+    ytmusic = YTMusic(auth_file)
 
     # Check for cache file and load video IDs if it exists
     cache_file = f"{os.path.splitext(json_file)[0]}_cache.json"
