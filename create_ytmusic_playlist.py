@@ -169,14 +169,11 @@ def main():
             with open(output_file, 'a') as f:
                 f.write(f"https://music.youtube.com/playlist?list={playlist_id}\n")
 
-    except HTTPError as e:
-        if e.response.status_code == 400:
-            print(f"Error: {e}")
-            print("Saving video IDs to cache file...")
-            with open(cache_file, 'w') as f:
-                json.dump(list(video_ids), f)
-        else:
-            raise
+    except Exception as e:
+        print(f"Error: {e}")
+        print("Saving video IDs to cache file...")
+        with open(cache_file, 'w') as f:
+            json.dump(list(video_ids), f)
 
     # Display warnings
     for warning in log:
