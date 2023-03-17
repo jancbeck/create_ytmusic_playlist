@@ -152,3 +152,4 @@ cython_debug/
 #.idea/
 headers_auth.json
 /yt-match
+playlist_ids.txt
