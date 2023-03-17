@@ -5,6 +5,8 @@ import re
 import unicodedata
 from datetime import datetime
 from ytmusicapi import YTMusic
+from queue import Queue
+from threading import Thread
 
 def normalize_string(text):
     normalized = unicodedata.normalize('NFD', text).encode('ASCII', 'ignore').decode('utf-8')
@@ -62,7 +64,36 @@ def main():
     ytmusic = YTMusic('headers_auth.json')
 
     video_ids = set()  # Initialize a set to store unique video IDs
+    log = []  # Initialize a list to store duplicate warnings
 
+    user_input_queue = Queue()
+
+    def process_user_input():
+        while True:
+            search_query, search_result = user_input_queue.get()
+            
+            video_id = prompt_user_choice(search_query, search_result)
+
+            if video_id is None:
+                # Perform a search with the scope set to "uploads"
+                video_results = ytmusic.search(search_query, filter='videos', ignore_spelling=True)[:10] # limit results to 10
+
+                if video_results and len(video_results) > 0:
+                    video_id = prompt_user_choice(search_query, video_results)
+
+            if video_id is not None:
+                if video_id in video_ids:
+                    log.append(f"Warning: Duplicate video ID ({video_id}) for {artist} - {track}")
+                else:
+                    video_ids.add(video_id)  # Add the video ID to the set
+                    
+            user_input_queue.task_done()
+
+    # Start the user input processing thread
+    user_input_thread = Thread(target=process_user_input)
+    user_input_thread.daemon = True
+    user_input_thread.start()
+    
     for item in data[0]['tracks']:
         artist = item['artist']
         track = item['track']
@@ -73,24 +104,21 @@ def main():
             first_match_ratio = compare_strings(search_query, f"{search_results[0]['artists'][0]['name']} - {search_results[0]['title']}")
 
             if first_match_ratio < 0.5:
-                video_id = prompt_user_choice(search_query, search_results)
-
-                if video_id is None:
-                    # Perform a search with the scope set to "uploads"
-                    video_results = ytmusic.search(search_query, filter='videos', ignore_spelling=True)[:10] # limit results to 10
-
-                    if video_results and len(video_results) > 0:
-                        video_id = prompt_user_choice(search_query, video_results)
-
+                user_input_queue.put((search_query, search_results))
             else:
                 video_id = search_results[0]['videoId']
 
-            if video_id is not None:
                 if video_id in video_ids:
-                    print(f"Warning: Duplicate video ID ({video_id}) for {artist} - {track}")
+                    log.append(f"Warning: Duplicate video ID ({video_id}) for {artist} - {track}")
                 else:
                     video_ids.add(video_id)  # Add the video ID to the set
 
+    # Wait for the user to finish providing input
+    user_input_queue.join()
+
+    # Display the duplicate warnings
+    for warning in log:
+        print(warning)
 
     # Add all unique video IDs to the playlist at once
     playlist_id = ytmusic.create_playlist(playlist_title, playlist_description, privacy_status='UNLISTED')
