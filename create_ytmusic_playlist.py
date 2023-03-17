@@ -154,7 +154,9 @@ def main():
 
     try:
         # Add all unique video IDs to the playlist at once
+        log.append(f"Creating new playlist ({playlist_title})")
         playlist_id = ytmusic.create_playlist(playlist_title, playlist_description, privacy_status='UNLISTED')
+        log.append(f"Adding items to playlist ({playlist_title})")
         add_items_result = ytmusic.add_playlist_items(playlist_id, list(video_ids))
         log.append(f"add_playlist_items result: {add_items_result}")
 
