@@ -70,6 +70,12 @@ Replace "Playlist Name" with your desired playlist name, and add as many artist-
 - The matching ratio threshold can be adjusted using the `--threshold` option. 
 - The script will save a cache file in the same directory as the JSON file with a `.cached` extension. This cache file stores the video IDs found during previous runs of the script.
 
+## To do
+
+- Highlight matched tokens in list
+- order song list by match percentage
+- select from list via arrow up/down keys, highlight selection
+
 ## License
 
 This project is licensed under the MIT License.
